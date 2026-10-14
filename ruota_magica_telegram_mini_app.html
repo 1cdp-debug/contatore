@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruota Magica</title>
+  <!-- SDK Telegram -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--tg-theme-bg-color, #1a1a2e);
+      color: var(--tg-theme-text-color, #ffffff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 16px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 20px;
+      color: var(--tg-theme-hint-color, #e94560);
+      text-align: center;
+    }
+
+    .wheel-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+    }
+
+    /* Indicatore in alto */
+    .pointer {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 14px solid transparent;
+      border-right: 14px solid transparent;
+      border-top: 24px solid #ff2e63;
+      z-index: 10;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+
+    .spin-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      background: #ff2e63;
+      color: #ffffff;
+      border: 4px solid #ffffff;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      z-index: 11;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      user-select: none;
+    }
+
+    .spin-btn:active {
+      transform: translate(-50%, -50%) scale(0.95);
+    }
+
+    /* Modale Risultato */
+    .result-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-content {
+      background: var(--tg-theme-secondary-bg-color, #16213e);
+      padding: 24px;
+      border-radius: 16px;
+      text-align: center;
+      max-width: 300px;
+      width: 100%;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .modal-title {
+      font-size: 1.8rem;
+      color: #00fff5;
+      margin-bottom: 12px;
+      font-weight: bold;
+    }
+
+    .modal-description {
+      font-size: 1.1rem;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      color: var(--tg-theme-text-color, #eaeaea);
+    }
+
+    .close-btn {
+      background: #ff2e63;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🎡 Ruota della Fortuna</h1>
+
+  <div class="wheel-container">
+    <div class="pointer"></div>
+    <canvas id="wheel" width="320" height="320"></canvas>
+    <div class="spin-btn" id="spinBtn">GIRA</div>
+  </div>
+
+  <!-- Finestra con Risultato e Descrizione Dettagliata -->
+  <div class="result-modal" id="resultModal">
+    <div class="modal-content">
+      <div class="modal-title" id="resTitle">Pizza</div>
+      <div class="modal-description" id="resDesc">Mangia tre spicchi di pizza con il peperoncino!</div>
+      <button class="close-btn" onclick="closeModal()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+
+    // 1. DEFINISCI LE OPZIONI CON TITOLO E DESCRIZIONE
+    const options = [
+      { label: "Lingua", desc: "Lecca per 5 minuti i piedi della Padrona! 👣", color: "#e94560" },
+      { label: "Ballo", desc: "Lecca per 10 minuti il culo della Padrona! 👅", color: "#0f3460" },
+      { label: "Canto", desc: "Pulisci la suola delle scarpe della Padrona, con la lingua! 🎤", color: "#16213e" },
+      { label: "Segreto", desc: "Per 0 minuti la tua bocca sarà una sputacchiera! 🤫", color: "#533483" },
+      { label: "Abbraccio", desc: "Tieni in bocca le calze della Padrona per un'ora! 🤗", color: "#00b4d8" },
+      { label: "Penitenza", desc: "Per la prossima ora la tua faccia sarà il cuscino della Padrona! 💪", color: "#e36414" }
+    ];
+
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spinBtn");
+    
+    const numOptions = options.length;
+    const arcSize = (2 * Math.PI) / numOptions;
+    let currentAngle = 0;
+    let isSpinning = false;
+
+    // Disegna la ruota
+    function drawWheel() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = canvas.width / 2;
+
+      options.forEach((opt, index) => {
+        const angle = currentAngle + index * arcSize;
+        
+        // Spicchio
+        ctx.beginPath();
+        ctx.fillStyle = opt.color;
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, angle, angle + arcSize);
+        ctx.lineTo(centerX, centerY);
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "#ffffff";
+        ctx.stroke();
+
+        // Testo
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(angle + arcSize / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 15px sans-serif";
+        ctx.fillText(opt.label, radius - 20, 5);
+        ctx.restore();
+      });
+    }
+
+    drawWheel();
+
+    // Funzione per far girare la ruota
+    spinBtn.addEventListener("click", () => {
+      if (isSpinning) return;
+      isSpinning = true;
+
+      // Giri casuali + angolo finale
+      const spins = 5 + Math.floor(Math.random() * 5);
+      const randomOffset = Math.random() * 2 * Math.PI;
+      const totalRotation = spins * 2 * Math.PI + randomOffset;
+      
+      const startAngle = currentAngle;
+      const startTime = performance.now();
+      const duration = 4000; // 4 secondi di animazione
+
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Effetto di rallentamento (ease-out)
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        currentAngle = startAngle + totalRotation * easeOut;
+
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          isSpinning = false;
+          showResult();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    });
+
+    // Calcola e mostra il risultato
+    function showResult() {
+      // Normalizza l'angolo tra 0 e 2PI
+      const normalizedAngle = (3 * Math.PI / 2 - currentAngle) % (2 * Math.PI);
+      const positiveAngle = normalizedAngle < 0 ? normalizedAngle + 2 * Math.PI : normalizedAngle;
+      
+      const selectedIndex = Math.floor(positiveAngle / arcSize);
+      const selectedOption = options[selectedIndex];
+
+      // Aggiorna il modale con Titolo e Descrizione
+      document.getElementById("resTitle").innerText = selectedOption.label;
+      document.getElementById("resDesc").innerText = selectedOption.desc;
+      
+      // Mostra la finestra di dialogo
+      document.getElementById("resultModal").style.display = "flex";
+
+      // Vibrazione del telefono (se supportata da Telegram)
+      if (window.Telegram.WebApp.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById("resultModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>
