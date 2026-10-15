@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Monitoraggio utilizzo del Cesso umano</title>
+  <title>Monitoraggio Cesso Condiviso</title>
   <!-- SDK Telegram -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
@@ -73,11 +73,16 @@
     button.cacca-btn {
       background: #533483;
     }
+
+    button.reset-btn {
+      background: #d90429;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
-  <h1>🚽 Monitoraggio utilizzo schiavo come Cesso 💩</h1>
+  <h1>🚽 Monitoraggio utilizzo dello schiavo Cesso 💩</h1>
 
   <div class="card">
     <div class="status-text" id="statusText">
@@ -86,8 +91,9 @@
   </div>
 
   <div class="btn-group">
-    <button id="btnPipi" onclick="modificaDati('pipi', 1)" disabled>🟡 la Padrona ha usato il suo cesso umano per pisciare</button>
-    <button id="btnCacca" class="cacca-btn" onclick="modificaDati('cacca', 1)" disabled>💩 la Padrona ha usato il suo cesso umano per cagare</button>
+    <button id="btnPipi" onclick="modificaDati('pipi', 1)" disabled>🟡 la Padrona ha usato il suo schiavo cesso per pisciare</button>
+    <button id="btnCacca" class="cacca-btn" onclick="modificaDati('cacca', 1)" disabled>💩 la Padrona ha usato il suo schiavo cesso per cagare</button>
+    <button id="btnReset" class="reset-btn" onclick="resetDati()" disabled>🔄 Reset Contatori</button>
   </div>
 
   <script>
@@ -112,6 +118,7 @@
         
         document.getElementById('btnPipi').disabled = false;
         document.getElementById('btnCacca').disabled = false;
+        document.getElementById('btnReset').disabled = false;
       } catch (errore) {
         document.getElementById('statusText').innerHTML = "Errore di connessione al cloud.";
       }
@@ -119,8 +126,8 @@
 
     function aggiornaSchermata() {
       document.getElementById('statusText').innerHTML = `
-        🟡 la Padrona ha usato il suo cesso umano per pisciare <b>${datiGlobali.pipi}</b> volte<br><br>
-        💩 la Padrona ha usato il suo cesso umano per cagare <b>${datiGlobali.cacca}</b> volte.
+        La Padrona ha usato il suo schiavo cesso per pisciare <b>${datiGlobali.pipi}</b> volte<br><br>
+        La Padrona ha usato il suo schiavo cesso per cagare <b>${datiGlobali.cacca}</b> volte.
       `;
     }
 
@@ -135,7 +142,27 @@
         window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
       }
 
-      // Invia i dati aggiornati a JSONBin
+      salvaSulCloud();
+    }
+
+    // 3. Funzione per azzerare i contatori
+    async function resetDati() {
+      if (confirm("Sei sicuro di voler azzerare tutti i contatori?")) {
+        datiGlobali.pipi = 0;
+        datiGlobali.cacca = 0;
+        
+        aggiornaSchermata();
+
+        if (window.Telegram.WebApp.HapticFeedback) {
+          window.Telegram.WebApp.HapticFeedback.notificationOccurred('warning');
+        }
+
+        salvaSulCloud();
+      }
+    }
+
+    // Funzione di supporto per inviare i dati a JSONBin
+    async function salvaSulCloud() {
       try {
         await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
           method: 'PUT',
