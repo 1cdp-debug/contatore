@@ -110,7 +110,9 @@
     async function caricaDati() {
       try {
         let risposta = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-          headers: { 'X-Access-Key': MASTER_KEY }
+          headers: { 
+            'X-Master-Key': MASTER_KEY 
+          }
         });
         let json = await risposta.json();
         datiGlobali = json.record;
@@ -120,6 +122,7 @@
         document.getElementById('btnCacca').disabled = false;
         document.getElementById('btnReset').disabled = false;
       } catch (errore) {
+        console.error(errore);
         document.getElementById('statusText').innerHTML = "Errore di connessione al cloud.";
       }
     }
@@ -161,7 +164,7 @@
       }
     }
 
-    // Funzione di supporto per inviare i dati a JSONBin
+    // Funzione per inviare i dati a JSONBin
     async function salvaSulCloud() {
       try {
         await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
