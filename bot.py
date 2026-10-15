@@ -2,13 +2,13 @@ import os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, WebAppInfo
 from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes
 
-# 1. Comando /start che mostra il pulsante "Utility"
+# Quando l'utente scrive /start, appare SUBITO il pulsante "Utility"
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("Utility", callback_data="menu_utility")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("Ciao! Clicca qui sotto per accedere alle utility:", reply_markup=reply_markup)
 
-# 2. Menu "Utility" che mostra Contatore e Roulette
+# Quando l'utente clicca "Utility", compaiono Contatore e Roulette
 async def utility_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -29,7 +29,7 @@ async def utility_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await query.edit_message_text(text="Scegli una utility:", reply_markup=reply_markup)
 
-# 3. Torna al menu principale
+# Per tornare indietro al menu con il pulsante "Utility"
 async def main_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
