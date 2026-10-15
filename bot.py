@@ -11,7 +11,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 web_app=WebAppInfo(url="https://1cdp-debug.github.io/contatore/index.html")
             ),
             InlineKeyboardButton(
-                "RuotaSM", 
+                "Ruota S&M", 
                 web_app=WebAppInfo(url="https://1cdp-debug.github.io/contatore/ruota_magica_telegram_mini_app.html")
             )
         ]
