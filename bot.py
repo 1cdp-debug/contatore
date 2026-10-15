@@ -2,7 +2,7 @@ import os
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, WebAppInfo
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# Appena l'utente avvia il bot, compaiono SUBITO Contatore e Roulette
+# Mostra i tre pulsanti non appena si avvia il bot
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [
@@ -11,8 +11,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 web_app=WebAppInfo(url="https://1cdp-debug.github.io/contatore/index.html")
             ),
             InlineKeyboardButton(
-                "Ruota S&M", 
+                "Ruota SM", 
                 web_app=WebAppInfo(url="https://1cdp-debug.github.io/contatore/ruota_magica_telegram_mini_app.html")
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                "Performance", 
+                web_app=WebAppInfo(url="https://1cdp-debug.github.io/contatore/utilizzo_cesso.html")
             )
         ]
     ]
@@ -24,7 +30,6 @@ def main():
     
     application = Application.builder().token(token).build()
 
-    # Si attiva direttamente con il comando di avvio
     application.add_handler(CommandHandler("start", start))
 
     application.run_polling()
