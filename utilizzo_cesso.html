@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoraggio utilizzo del Cesso umano</title>
+  <!-- SDK Telegram -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--tg-theme-bg-color, #1a1a2e);
+      color: var(--tg-theme-text-color, #ffffff);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      margin-bottom: 24px;
+      color: var(--tg-theme-hint-color, #00fff5);
+      text-align: center;
+    }
+
+    .card {
+      background: var(--tg-theme-secondary-bg-color, #16213e);
+      padding: 20px;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 320px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      border: 1px solid rgba(255,255,255,0.1);
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .status-text {
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      width: 100%;
+      max-width: 320px;
+    }
+
+    button {
+      background: #e36414;
+      color: #fff;
+      border: none;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.1s ease;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    button.cacca-btn {
+      background: #533483;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🚽 Monitoraggio utilizzo schiavo come Cesso 💩</h1>
+
+  <div class="card">
+    <div class="status-text" id="statusText">
+      Sincronizzazione in corso...
+    </div>
+  </div>
+
+  <div class="btn-group">
+    <button id="btnPipi" onclick="modificaDati('pipi', 1)" disabled>🟡 la Padrona ha usato il suo cesso umano per pisciare</button>
+    <button id="btnCacca" class="cacca-btn" onclick="modificaDati('cacca', 1)" disabled>💩 la Padrona ha usato il suo cesso umano per cagare</button>
+  </div>
+
+  <script>
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+
+    // INCOLLA QUI I TUOI CODICI DI JSONBIN
+    const BIN_ID = '6ad145c9ac6210605a3558b7';
+    const MASTER_KEY = '$2a$10$7ybwhidHdxekn4ePPrwV1uPe/QL6YjkO2tHY.Hno7TnipZAnHJXpe';
+    
+    let datiGlobali = { pipi: 0, cacca: 0 };
+
+    // 1. Legge i dati dal cloud all'apertura
+    async function caricaDati() {
+      try {
+        let risposta = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+          headers: { 'X-Access-Key': MASTER_KEY }
+        });
+        let json = await risposta.json();
+        datiGlobali = json.record;
+        aggiornaSchermata();
+        
+        document.getElementById('btnPipi').disabled = false;
+        document.getElementById('btnCacca').disabled = false;
+      } catch (errore) {
+        document.getElementById('statusText').innerHTML = "Errore di connessione al cloud.";
+      }
+    }
+
+    function aggiornaSchermata() {
+      document.getElementById('statusText').innerHTML = `
+        🟡 la Padrona ha usato il suo cesso umano per pisciare <b>${datiGlobali.pipi}</b> volte<br><br>
+        💩 la Padrona ha usato il suo cesso umano per cagare <b>${datiGlobali.cacca}</b> volte.
+      `;
+    }
+
+    // 2. Modifica i dati e li salva subito sul cloud
+    async function modificaDati(tipo, quantita) {
+      if (tipo === 'pipi') datiGlobali.pipi += quantita;
+      if (tipo === 'cacca') datiGlobali.cacca += quantita;
+      
+      aggiornaSchermata();
+
+      if (window.Telegram.WebApp.HapticFeedback) {
+        window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+      }
+
+      // Invia i dati aggiornati a JSONBin
+      try {
+        await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': MASTER_KEY
+          },
+          body: JSON.stringify(datiGlobali)
+        });
+      } catch (errore) {
+        console.error("Errore nel salvataggio", errore);
+      }
+    }
+
+    caricaDati();
+  </script>
+</body>
+</html>
