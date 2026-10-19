@@ -29,17 +29,21 @@
     .countdown-container {
       display: flex;
       gap: 12px;
+      width: 100%;
+      max-width: 340px;
+      padding: 0 16px;
+      box-sizing: border-box;
     }
 
     .time-box {
       background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-      padding: 12px 16px;
+      padding: 16px 12px;
       border-radius: 12px;
-      min-width: 60px;
+      flex: 1; /* Fa in modo che i 3 box si dividano lo spazio in parti uguali */
     }
 
     .number {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: bold;
       color: var(--tg-theme-button-color, #2481cc);
     }
@@ -58,8 +62,7 @@
   <div class="countdown-container">
     <div class="time-box"><div id="days" class="number">00</div><div class="label">Giorni</div></div>
     <div class="time-box"><div id="hours" class="number">00</div><div class="label">Ore</div></div>
-    <div class="time-box"><div id="minutes" class="number">00</div><div class="label">Min</div></div>
-    <div class="time-box"><div id="seconds" class="number">00</div><div class="label">Sec</div></div>
+    <div class="time-box"><div id="minutes" class="number">00</div><div class="label">Minuti</div></div>
   </div>
 
   <script>
@@ -67,7 +70,7 @@
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand(); // Espande la finestra a schermo intero
 
-    // impostazione Data Target (Anno, Mese-1, Giorno, Ora, Minuti)
+    // impostazione Data Target (Anno, Mese, Giorno, Ora, Minuti)
     const targetDate = new Date("2026-11-13T19:30:00").getTime();
 
     function updateCountdown() {
@@ -82,16 +85,14 @@
       const days = Math.floor(difference / (1000 * 60 * 60 * 24));
       const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
       document.getElementById("days").innerText = String(days).padStart(2, '0');
       document.getElementById("hours").innerText = String(hours).padStart(2, '0');
       document.getElementById("minutes").innerText = String(minutes).padStart(2, '0');
-      document.getElementById("seconds").innerText = String(seconds).padStart(2, '0');
     }
 
-    // Aggiornamento ogni secondo
-    setInterval(updateCountdown, 1000);
+    // Aggiornamento ogni minuto (visto che i secondi non ci sono più)
+    setInterval(updateCountdown, 60000);
     updateCountdown();
   </script>
 </body>
